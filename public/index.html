@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Info</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .player-info {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .player-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+        .player-details {
+            margin-top: 20px;
+        }
+        .player-details h2 {
+            display: inline;
+            margin-right: 5px;
+        }
+        .player-details .tagline {
+            display: inline;
+            color: #888;
+            font-size: 1.1em;
+        }
+        .rank-display {
+            text-align: center;
+            margin-top: 20px;
+            position: relative;
+        }
+        .rank-icon {
+            width: 50px;
+            height: 50px;
+        }
+        .rank-name {
+            font-size: 1.5em;
+            margin: 10px 0;
+        }
+        .progress {
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-bar {
+            background-color: #007bff;
+            text-align: center;
+            color: white;
+            line-height: 20px;
+            border-radius: 10px;
+        }
+        .rank-points {
+            margin-top: 5px;
+            text-align: right;
+            width: 100%;
+            font-size: 0.9em;
+            color: #333;
+        }
+        .player-stats {
+            margin-top: 20px;
+        }
+        .player-stats .stat {
+            margin-bottom: 10px;
+        }
+        .search-box {
+            max-width: 450px;
+            margin: 20px auto;
+        }
+        .progress-bar {
+            background-color: #6dbbad;
+            text-align: center;
+            color: white;
+            line-height: 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-box">
+        <form id="searchForm" class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="Enter Name" id="nameInput" required>
+            <input type="text" class="form-control" placeholder="Enter Tagline" id="taglineInput" required>
+            <button class="btn btn-primary" type="submit">Search</button>
+        </form>
+    </div>
+
+    <div class="player-info">
+        <div class="player-card">
+            <img src="/img/main" alt="Player Card" id="playerCardImage">
+        </div>
+        <div class="rank-display">
+            <img src="http://localhost:3000/img/rank/1" alt="Rank Icon" class="rank-icon" id="rankIcon">
+            <h3 class="rank-name" id="displayRankName">アンランク</h3>
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" id="rankProgressBar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="rank-points" id="rankPoints">0/100</div>
+        </div>
+        <div class="player-details">
+            <h2 id="playerName">name</h2><span class="tagline" id="playerTagline"># tag</span>
+        </div>
+        <div class="player-stats">
+            <div class="stat"><strong>レベル:</strong> <span id="playerLevel">0</span></div>
+            <div class="stat"><strong>直近のMMR変動:</strong> <span id="mmrChange">0</span></div>
+            <div class="stat"><strong>トータル:</strong> <span id="totalPoints">total</span></div>
+            <div class="stat"><strong>リージョン:</strong> <span id="shard"></span></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('nameInput').value;
+            const tagline = document.getElementById('taglineInput').value;
+            // Fetch and display the player info using the name and tagline
+            fetch(`/api/info/${name}/${tagline}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('playerName').textContent = data.gameName;
+                    document.getElementById('playerTagline').textContent = `# ${data.tagLine}`;
+                    document.getElementById('playerCardImage').src = data.card.small;
+                    document.getElementById('playerLevel').textContent = data.account_level;
+                    document.getElementById('displayRankName').textContent = data.currentRank.ja;
+                    document.getElementById('rankIcon').src = data.currentRankImg;
+                    const progressBar = document.getElementById('rankProgressBar');
+                    progressBar.style.width = `${data.points}%`;
+                    progressBar.setAttribute('aria-valuenow', data.points);
+                    document.getElementById('rankPoints').textContent = `${data.points}/100`;
+                    document.getElementById('mmrChange').textContent = data.mmr_change_to_last_game;
+                    document.getElementById('totalPoints').textContent = data.totalPoints;
+
+                    // Translate shard to Japanese region name
+                    let regionName;
+                    switch (data.shared) {
+                        case 'na':
+                            regionName = '北アメリカ (LATAM, BR)';
+                            break;
+                        case 'pbe':
+                            regionName = '北アメリカ (PBE)';
+                            break;
+                        case 'eu':
+                            regionName = 'ヨーロッパ';
+                            break;
+                        case 'ap':
+                            regionName = 'アジア';
+                            break;
+                        case 'kr':
+                            regionName = '韓国';
+                            break;
+                        default:
+                            regionName = data.shared;
+                    }
+                    document.getElementById('shard').textContent = regionName;
+                });
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const name = urlParams.get('name');
+        const tagline = urlParams.get('tagline');
+        if (name && tagline) {
+            document.getElementById('nameInput').value = name;
+            document.getElementById('taglineInput').value = tagline;
+            document.getElementById('searchForm').dispatchEvent(new Event('submit'));
+        }
+    </script>
+</body>
+</html>
