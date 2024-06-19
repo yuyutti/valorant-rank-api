@@ -94,7 +94,7 @@ async function getRiotUserInfo(riotGames) { // Riotのユーザー情報を取�
                     ja: rankList[MMR.data.currenttier].ja,
                     en: rankList[MMR.data.currenttier].en,
                 },
-                currentRankImg: `http://${config.host}${rankList[MMR.data.currenttier].url}`,
+                currentRankImgSrc: `${rankList[MMR.data.currenttier].url}`,
                 mmr_change_to_last_game: MMR.data.mmr_change_to_last_game,
                 totalPoints: MMR.data.elo
             }
