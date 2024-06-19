@@ -100,7 +100,7 @@
     </div>
 
     <div class="player-info" id="playerInfo">
-        <div class="loading" id="loadingMessage">取得中...</div>
+        <div class="loading" id="loadingMessage">↑ユーザー名とタグを入力してプレイヤーを検索↑</div>
         <div class="player-card" style="display:none;">
             <img src="/img/main" alt="Player Card" id="playerCardImage">
         </div>
@@ -183,6 +183,7 @@
         const name = urlParams.get('name');
         const tagline = urlParams.get('tagline');
         if (name && tagline) {
+            document.getElementById('loadingMessage').text = '取得中...';
             document.getElementById('nameInput').value = name;
             document.getElementById('taglineInput').value = tagline;
             document.getElementById('searchForm').dispatchEvent(new Event('submit'));
