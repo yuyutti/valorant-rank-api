@@ -8,6 +8,7 @@ const rankList = require('./ranklist');
 
 const config = {
     port: process.env.PORT || 3000,
+    openPort: process.env.OPEN_PORT || 433,
     host: process.env.HOST || 'localhost',
     ValorantAPIKey: process.env.VALORANT_API_KEY || null,
 }
