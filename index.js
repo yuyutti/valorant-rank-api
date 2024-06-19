@@ -8,7 +8,6 @@ const rankList = require('./ranklist');
 
 const config = {
     port: process.env.PORT || 3000,
-    openPort: process.env.OPEN_PORT || 433,
     host: process.env.HOST || 'localhost',
     ValorantAPIKey: process.env.VALORANT_API_KEY || null,
 }
@@ -95,7 +94,7 @@ async function getRiotUserInfo(riotGames) { // Riotのユーザー情報を取�
                     ja: rankList[MMR.data.currenttier].ja,
                     en: rankList[MMR.data.currenttier].en,
                 },
-                currentRankImg: `http://${config.host}:${config.openPort}${rankList[MMR.data.currenttier].url}`,
+                currentRankImg: `http://${config.host}${rankList[MMR.data.currenttier].url}`,
                 mmr_change_to_last_game: MMR.data.mmr_change_to_last_game,
                 totalPoints: MMR.data.elo
             }
