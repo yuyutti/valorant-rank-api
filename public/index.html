@@ -129,6 +129,7 @@
             const name = document.getElementById('nameInput').value;
             const tagline = document.getElementById('taglineInput').value;
             document.getElementById('loadingMessage').style.display = 'block';
+            document.getElementById('loadingMessage').textContent = '取得中...';
             document.querySelectorAll('.player-card, .rank-display, .player-details, .player-stats').forEach(el => el.style.display = 'none');
 
             // Fetch and display the player info using the name and tagline
@@ -136,6 +137,7 @@
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('loadingMessage').style.display = 'none';
+                    document.getElementById('loadingMessage').textContent = '取得中...';
                     document.querySelectorAll('.player-card, .rank-display, .player-details, .player-stats').forEach(el => el.style.display = 'block');
                     document.getElementById('playerName').textContent = data.gameName;
                     document.getElementById('playerTagline').textContent = `# ${data.tagLine}`;
