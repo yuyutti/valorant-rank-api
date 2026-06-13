@@ -1,111 +1,123 @@
 require('dotenv').config();
-const express = require('express');
-const app = express();
 
+const express = require('express');
 const fs = require('fs');
+const path = require('path');
 
 const rankList = require('./ranklist');
+
+const app = express();
 
 const config = {
     port: process.env.PORT || 3000,
     host: process.env.HOST || 'localhost',
     ValorantAPIKey: process.env.VALORANT_API_KEY || null,
-}
+};
 
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/public/index.html');
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/api/info/:name/:tag', async (req, res) => { // ユーザー情報を取得
-    const name = req.params.name;
-    const tag = req.params.tag;
-    const RiotID = {
-        name: `${name}#${tag}`,
+app.get('/api/info/:name/:tag', async (req, res) => {
+    const riotId = {
+        name: `${req.params.name}#${req.params.tag}`,
+    };
+    const riotUserInfo = await getRiotUserInfo(riotId);
+
+    if (riotUserInfo.error) {
+        return res.status(riotUserInfo.status || 500).json(riotUserInfo);
     }
-    const riotUserInfo = await getRiotUserInfo(RiotID);
 
     return res.json(riotUserInfo);
 });
 
-app.get('/img/rank/:rank', (req, res) => { // ランクの画像を取得
-    const rank = req.params.rank;
-    const imgPath = rankList[rank].img;
+app.get('/img/rank/:rank', (req, res) => {
+    const rankInfo = getRankInfo(req.params.rank);
+    const imgPath = path.join(__dirname, rankInfo.img);
     const img = fs.readFileSync(imgPath);
+
     res.writeHead(200, { 'Content-Type': 'image/png' });
     res.end(img, 'binary');
 });
 
-app.get(`/img/main`, (req, res) => { // メイン画像を取得
-    const imgPath = './img/picture/mainimg.png';
+app.get('/img/main', (req, res) => {
+    const imgPath = path.join(__dirname, 'img', 'picture', 'mainimg.png');
     const img = fs.readFileSync(imgPath);
+
     res.writeHead(200, { 'Content-Type': 'image/png' });
     res.end(img, 'binary');
 });
 
-async function getRiotUserInfo(riotGames) { // Riotのユーザー情報を取得
+function getRankInfo(tier) {
+    return rankList[tier] || rankList[1];
+}
+
+function getCurrentMmrData(mmr) {
+    return mmr.data.current_data || mmr.data;
+}
+
+async function fetchJson(url) {
+    const response = await fetch(url, {
+        headers: {
+            Authorization: config.ValorantAPIKey,
+        },
+    });
+    const body = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+        const message = body.errors?.[0]?.message || body.message || response.statusText;
+        const error = new Error(message);
+        error.status = response.status;
+        throw error;
+    }
+
+    return body;
+}
+
+async function getRiotUserInfo(riotGames) {
     try {
-        const [name, tagLine] = riotGames.name.split("#");
-
-        const response_accountInfo = await fetch(`https://api.henrikdev.xyz/valorant/v1/account/${name}/${tagLine}`, {
-            headers: {
-                "Authorization": config.ValorantAPIKey
-            }
-        });
-
-        if (!response_accountInfo.ok) {
-            throw new Error(`Account info fetch failed: ${response_accountInfo.statusText}`);
+        if (!config.ValorantAPIKey) {
+            const error = new Error('VALORANT_API_KEY is not set');
+            error.status = 500;
+            throw error;
         }
 
-        const accountInfo = await response_accountInfo.json();
+        const [name, tagLine] = riotGames.name.split('#');
+        const encodedName = encodeURIComponent(name);
+        const encodedTagLine = encodeURIComponent(tagLine);
+
+        const accountInfo = await fetchJson(`https://api.henrikdev.xyz/valorant/v1/account/${encodedName}/${encodedTagLine}`);
         const activeShard = accountInfo.data.region;
+        const mmr = await fetchJson(`https://api.henrikdev.xyz/valorant/v2/mmr/${activeShard}/${encodedName}/${encodedTagLine}`);
+        const currentMmr = getCurrentMmrData(mmr);
+        const rankInfo = getRankInfo(currentMmr.currenttier);
 
-        const response_MMR = await fetch(`https://api.henrikdev.xyz/valorant/v1/mmr/${activeShard}/${name}/${tagLine}`, {
-            headers: {
-                "Authorization": config.ValorantAPIKey
-            }
-        });
-
-        if (!response_MMR.ok) {
-            throw new Error(`MMR info fetch failed: ${response_MMR.statusText}`);
-        }
-
-        const MMR = await response_MMR.json();
-        if (MMR.data.old) {
-            const responseData = {
-                puuid: accountInfo.data.puuid,
-                gameName: accountInfo.data.name,
-                tagLine: accountInfo.data.tag,
-                card: accountInfo.data.card,
-                shared: accountInfo.data.region,
-                account_level: accountInfo.data.account_level
-            }
-            return responseData;
-        } else {
-            const responseData = {
-                puuid: accountInfo.data.puuid,
-                gameName: accountInfo.data.name,
-                tagLine: accountInfo.data.tag,
-                card: accountInfo.data.card,
-                shared: accountInfo.data.region,
-                account_level: accountInfo.data.account_level,
-                currentTia: MMR.data.currenttier,
-                points: MMR.data.ranking_in_tier || 0,
-                currentRank: {
-                    ja: rankList[MMR.data.currenttier].ja,
-                    en: rankList[MMR.data.currenttier].en,
-                },
-                currentRankImgSrc: `${rankList[MMR.data.currenttier].url}`,
-                mmr_change_to_last_game: MMR.data.mmr_change_to_last_game,
-                totalPoints: MMR.data.elo
-            }
-            return responseData;
-        }
+        return {
+            puuid: accountInfo.data.puuid,
+            gameName: accountInfo.data.name,
+            tagLine: accountInfo.data.tag,
+            card: accountInfo.data.card,
+            shared: accountInfo.data.region,
+            account_level: accountInfo.data.account_level,
+            currentTia: currentMmr.currenttier || 1,
+            points: currentMmr.ranking_in_tier || 0,
+            currentRank: {
+                ja: rankInfo.ja,
+                en: rankInfo.en,
+            },
+            currentRankImgSrc: rankInfo.url,
+            mmr_change_to_last_game: currentMmr.mmr_change_to_last_game || 0,
+            totalPoints: currentMmr.elo || 0,
+        };
     } catch (error) {
         console.error('Error fetching Riot user info:', error);
-        return { error: error.message };
+        return {
+            error: error.message,
+            status: error.status || 500,
+        };
     }
 }
 
 app.listen(config.port, () => {
-    console.log('Example app listening on port 3000!');
+    console.log(`Example app listening on port ${config.port}!`);
 });

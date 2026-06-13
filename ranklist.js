@@ -1,13 +1,19 @@
 const rankList = {
+    0: {
+        ja: 'アンランク',
+        en: 'Unranked',
+        url: '/img/rank/0',
+        img: './img/rank/unranked.png',
+    },
     1: {
-        ja: 'アンランク1',
-        en: 'Unranked1',
+        ja: 'アンランク',
+        en: 'Unranked',
         url: '/img/rank/1',
         img: './img/rank/unranked.png',
     },
     2: {
-        ja: 'アンランク2',
-        en: 'Unranked2',
+        ja: 'アンランク',
+        en: 'Unranked',
         url: '/img/rank/2',
         img: './img/rank/unranked.png',
     },
@@ -102,19 +108,19 @@ const rankList = {
         img: './img/rank/Platinum_3_Rank.png',
     },
     18: {
-        ja: 'ダイヤ1',
+        ja: 'ダイヤモンド1',
         en: 'Diamond 1',
         url: '/img/rank/18',
         img: './img/rank/Diamond_1_Rank.png',
     },
     19: {
-        ja: 'ダイヤ2',
+        ja: 'ダイヤモンド2',
         en: 'Diamond 2',
         url: '/img/rank/19',
         img: './img/rank/Diamond_2_Rank.png',
     },
     20: {
-        ja: 'ダイヤ3',
+        ja: 'ダイヤモンド3',
         en: 'Diamond 3',
         url: '/img/rank/20',
         img: './img/rank/Diamond_3_Rank.png',
@@ -138,19 +144,19 @@ const rankList = {
         img: './img/rank/Ascendant_3_Rank.png',
     },
     24: {
-        ja: 'インモータル1',
+        ja: 'イモータル1',
         en: 'Immortal 1',
         url: '/img/rank/24',
         img: './img/rank/Immortal_1_Rank.png',
     },
     25: {
-        ja: 'インモータル2',
+        ja: 'イモータル2',
         en: 'Immortal 2',
         url: '/img/rank/25',
         img: './img/rank/Immortal_2_Rank.png',
     },
     26: {
-        ja: 'インモータル3',
+        ja: 'イモータル3',
         en: 'Immortal 3',
         url: '/img/rank/26',
         img: './img/rank/Immortal_3_Rank.png',
@@ -160,7 +166,7 @@ const rankList = {
         en: 'Radiant',
         url: '/img/rank/27',
         img: './img/rank/Radiant_Rank.png',
-    }
-}
+    },
+};
 
 module.exports = rankList;
