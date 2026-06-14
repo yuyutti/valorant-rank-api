@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プライバシーポリシー | VALORANT Rank Search</title>
+    <!-- GOOGLE_ANALYTICS -->
+    <style>
+        :root {
+            --valorant-red: #ff4655;
+            --valorant-dark: #0f1923;
+            --valorant-panel: rgba(15, 25, 35, 0.9);
+            --valorant-border: rgba(255, 255, 255, 0.14);
+            --valorant-muted: #9da8b4;
+            --valorant-text: #f4f7f9;
+            --valorant-teal: #64f5d2;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+            color: var(--valorant-text);
+            background:
+                linear-gradient(135deg, rgba(15, 25, 35, 0.96), rgba(15, 25, 35, 0.86)),
+                radial-gradient(circle at 16% 18%, rgba(255, 70, 85, 0.28), transparent 28%),
+                radial-gradient(circle at 88% 12%, rgba(100, 245, 210, 0.14), transparent 26%),
+                var(--valorant-dark);
+        }
+
+        .policy-shell {
+            width: min(880px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 32px 0;
+        }
+
+        .top-link {
+            display: inline-block;
+            margin-bottom: 24px;
+            color: var(--valorant-teal);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .top-link:hover {
+            text-decoration: underline;
+        }
+
+        .policy-panel {
+            background: var(--valorant-panel);
+            border: 1px solid var(--valorant-border);
+            border-left: 4px solid var(--valorant-red);
+            padding: 28px;
+            box-shadow: 0 22px 60px rgba(0, 0, 0, 0.28);
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: clamp(2rem, 5vw, 3.4rem);
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: 0;
+        }
+
+        .updated-at {
+            margin: 0 0 28px;
+            color: var(--valorant-muted);
+            font-size: 0.92rem;
+        }
+
+        section {
+            padding-top: 20px;
+            border-top: 1px solid var(--valorant-border);
+        }
+
+        section:first-of-type {
+            border-top: 0;
+            padding-top: 0;
+        }
+
+        h2 {
+            margin: 0 0 12px;
+            color: var(--valorant-red);
+            font-size: 1.18rem;
+            font-weight: 900;
+        }
+
+        p,
+        li {
+            color: var(--valorant-text);
+            line-height: 1.8;
+        }
+
+        p {
+            margin: 0 0 16px;
+        }
+
+        ul {
+            margin: 0 0 20px;
+            padding-left: 1.2rem;
+        }
+
+        a {
+            color: var(--valorant-teal);
+        }
+
+        @media (max-width: 760px) {
+            .policy-shell {
+                width: min(100% - 24px, 880px);
+                padding: 20px 0;
+            }
+
+            .policy-panel {
+                padding: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="policy-shell">
+        <a class="top-link" href="/">Rank Searchへ戻る</a>
+
+        <article class="policy-panel">
+            <h1>プライバシーポリシー</h1>
+            <p class="updated-at">制定日: 2026年6月14日</p>
+
+            <section>
+                <h2>取得する情報</h2>
+                <p>本サイトでは、VALORANTのランク情報を表示するため、利用者が入力したRiot IDのプレイヤー名とタグラインを取得します。</p>
+                <p>また、サイトの利用状況を把握するため、Google Analyticsを使用します。Google Analyticsでは、Cookieまたは類似技術により、閲覧したページ、利用環境、アクセス日時などの情報が収集される場合があります。</p>
+            </section>
+
+            <section>
+                <h2>利用目的</h2>
+                <ul>
+                    <li>入力されたRiot IDに対応するランク情報を取得し、画面に表示するため</li>
+                    <li>サイトの利用状況を分析し、表示内容や機能を改善するため</li>
+                    <li>不具合の調査、安定運用、セキュリティ確認のため</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>外部サービスへの送信</h2>
+                <p>ランク情報の取得には、HenrikDev APIを使用します。検索時に入力されたRiot IDは、ランク情報を取得する目的で同APIへ送信されます。</p>
+                <p>Google Analyticsによって収集された情報は、Googleのプライバシーポリシーおよび関連規約に基づいて管理されます。Googleによる情報の利用については、<a href="https://www.google.com/policies/privacy/partners/" target="_blank" rel="noopener noreferrer">Googleの説明ページ</a>をご確認ください。</p>
+            </section>
+
+            <section>
+                <h2>Cookieについて</h2>
+                <p>本サイトでは、Google Analyticsによるアクセス解析のためにCookieを使用する場合があります。ブラウザの設定によりCookieを無効化できますが、一部の機能が正常に動作しない場合があります。</p>
+                <p>Google Analyticsによるデータ収集を無効にしたい場合は、<a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer">Google Analytics オプトアウト アドオン</a>の利用も検討できます。</p>
+            </section>
+
+            <section>
+                <h2>個人情報の管理</h2>
+                <p>本サイトは、入力されたRiot IDをデータベースへ保存しません。ただし、サーバのアクセスログ等にリクエスト情報が一時的に記録される場合があります。</p>
+            </section>
+
+            <section>
+                <h2>免責事項</h2>
+                <p>本サイトはRiot Games公式のサービスではありません。VALORANTに関する権利は、Riot Games, Inc.に帰属します。</p>
+            </section>
+
+            <section>
+                <h2>改定</h2>
+                <p>本ポリシーは、必要に応じて内容を変更することがあります。変更後の内容は、本ページに掲載した時点で有効となります。</p>
+            </section>
+        </article>
+    </main>
+</body>
+</html>

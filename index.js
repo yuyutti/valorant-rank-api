@@ -12,10 +12,15 @@ const config = {
     port: process.env.PORT || 3000,
     host: process.env.HOST || 'localhost',
     ValorantAPIKey: process.env.VALORANT_API_KEY || null,
+    googleAnalyticsId: process.env.GOOGLE_ANALYTICS_ID || '',
 };
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.send(renderStaticPage('index.html'));
+});
+
+app.get('/privacy', (req, res) => {
+    res.send(renderStaticPage('privacy.html'));
 });
 
 app.get('/api/info/:name/:tag', async (req, res) => {
@@ -50,6 +55,36 @@ app.get('/img/main', (req, res) => {
 
 function getRankInfo(tier) {
     return rankList[tier] || rankList[1];
+}
+
+function getGoogleAnalyticsTag() {
+    if (!/^G-[A-Z0-9]+$/i.test(config.googleAnalyticsId)) {
+        return '';
+    }
+
+    return `
+    <script async src="https://www.googletagmanager.com/gtag/js?id=${config.googleAnalyticsId}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+        gtag('config', '${config.googleAnalyticsId}', {
+            page_path: window.location.pathname,
+            allow_google_signals: false,
+            allow_ad_personalization_signals: false
+        });
+    </script>`;
+}
+
+function renderStaticPage(filename) {
+    const pagePath = path.join(__dirname, 'public', filename);
+    const html = fs.readFileSync(pagePath, 'utf8');
+
+    return html.replace('<!-- GOOGLE_ANALYTICS -->', getGoogleAnalyticsTag());
 }
 
 function getCurrentMmrData(mmr) {
