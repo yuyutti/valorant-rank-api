@@ -34,11 +34,11 @@ app.get('/api/info/:name/:tag', async (req, res) => {
     const analyticsParams = buildApiInfoAnalyticsParams(req, riotUserInfo);
 
     if (riotUserInfo.error) {
-        sendGoogleAnalyticsEvent(req, 'api_info_request', analyticsParams);
+        sendGoogleAnalyticsEvent(req, 'page_view', analyticsParams);
         return res.status(riotUserInfo.status || 500).json(riotUserInfo);
     }
 
-    sendGoogleAnalyticsEvent(req, 'api_info_request', analyticsParams);
+    sendGoogleAnalyticsEvent(req, 'page_view', analyticsParams);
     return res.json(riotUserInfo);
 });
 
@@ -120,14 +120,24 @@ function getRequestSource(req) {
     return 'unknown';
 }
 
+function getRequestOrigin(req) {
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+    const host = req.headers['x-forwarded-host'] || req.headers.host || `${config.host}:${config.port}`;
+
+    return `${protocol}://${host}`;
+}
+
 function buildApiInfoAnalyticsParams(req, riotUserInfo) {
     const name = req.params.name || '';
     const tag = req.params.tag || '';
     const success = !riotUserInfo.error;
+    const apiPath = `/api/info/${name}/${tag}`;
 
     return {
         api_path: `/api/info/:name/:tag`,
-        api_full_path:  `/api/info/${name}/${tag}`,
+        api_full_path: apiPath,
+        page_location: `${getRequestOrigin(req)}${apiPath}`,
+        page_title: 'VALORANT Rank API Info',
         request_source: getRequestSource(req),
         success: success ? 1 : 0,
         status: riotUserInfo.status || 200,
