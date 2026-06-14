@@ -557,7 +557,6 @@
                 renderPlayer(data, name, tagline);
                 lastSearch = { name, tagline };
                 currentShareUrl = buildShareUrl(name, tagline);
-                window.history.replaceState(null, '', currentShareUrl);
                 setStatus('検索結果を表示しました。', 'success');
             } catch (error) {
                 lastSearch = null;

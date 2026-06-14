@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const rankList = require('./ranklist');
 
@@ -13,6 +14,8 @@ const config = {
     host: process.env.HOST || 'localhost',
     ValorantAPIKey: process.env.VALORANT_API_KEY || null,
     googleAnalyticsId: process.env.GOOGLE_ANALYTICS_ID || '',
+    googleAnalyticsApiSecret: process.env.GOOGLE_ANALYTICS_API_SECRET || '',
+    googleAnalyticsHashSecret: process.env.GOOGLE_ANALYTICS_HASH_SECRET || process.env.GOOGLE_ANALYTICS_API_SECRET || '',
 };
 
 app.get('/', (req, res) => {
@@ -28,11 +31,14 @@ app.get('/api/info/:name/:tag', async (req, res) => {
         name: `${req.params.name}#${req.params.tag}`,
     };
     const riotUserInfo = await getRiotUserInfo(riotId);
+    const analyticsParams = buildApiInfoAnalyticsParams(req, riotUserInfo);
 
     if (riotUserInfo.error) {
+        sendGoogleAnalyticsEvent(req, 'api_info_request', analyticsParams);
         return res.status(riotUserInfo.status || 500).json(riotUserInfo);
     }
 
+    sendGoogleAnalyticsEvent(req, 'api_info_request', analyticsParams);
     return res.json(riotUserInfo);
 });
 
@@ -57,6 +63,127 @@ function getRankInfo(tier) {
     return rankList[tier] || rankList[1];
 }
 
+function sha256(value) {
+    return crypto.createHash('sha256').update(value).digest('hex');
+}
+
+function getRiotIdHash(name, tag) {
+    const normalizedRiotId = `${name.trim().toLowerCase()}#${tag.trim().toLowerCase()}`;
+
+    return getAnalyticsKey(normalizedRiotId);
+}
+
+function getAnalyticsKey(value) {
+    if (!config.googleAnalyticsHashSecret) {
+        return sha256(value);
+    }
+
+    return crypto
+        .createHmac('sha256', config.googleAnalyticsHashSecret)
+        .update(value)
+        .digest('hex');
+}
+
+function getRequestIp(req) {
+    const forwardedFor = req.headers['x-forwarded-for'];
+
+    if (forwardedFor) {
+        return forwardedFor.split(',')[0].trim();
+    }
+
+    return req.socket.remoteAddress || '';
+}
+
+function getGoogleAnalyticsClientId(req) {
+    const gaCookie = req.headers.cookie?.match(/(?:^|;\s*)_ga=GA\d+\.\d+\.(\d+\.\d+)/);
+
+    if (gaCookie) {
+        return gaCookie[1];
+    }
+
+    const requestHash = sha256(`${getRequestIp(req)}|${req.headers['user-agent'] || ''}`);
+    const first = Number.parseInt(requestHash.slice(0, 12), 16) % 10000000000;
+    const second = Number.parseInt(requestHash.slice(12, 24), 16) % 10000000000;
+
+    return `${first}.${second}`;
+}
+
+function getRequestSource(req) {
+    if (req.headers.accept?.includes('text/html')) {
+        return 'browser';
+    }
+
+    if (req.headers['user-agent']) {
+        return 'api_client';
+    }
+
+    return 'unknown';
+}
+
+function buildApiInfoAnalyticsParams(req, riotUserInfo) {
+    const name = req.params.name || '';
+    const tag = req.params.tag || '';
+    const success = !riotUserInfo.error;
+
+    return {
+        api_path: `/api/info/:name/:tag`,
+        api_full_path:  `/api/info/${name}/${tag}`,
+        request_source: getRequestSource(req),
+        success: success ? 1 : 0,
+        status: riotUserInfo.status || 200,
+        riot_id_key: getRiotIdHash(name, tag),
+        account_key: riotUserInfo.puuid ? getAnalyticsKey(riotUserInfo.puuid) : '',
+        current_tier: riotUserInfo.currentTia || 0,
+        current_rank_ja: riotUserInfo.currentRank?.ja || '',
+        current_rank_en: riotUserInfo.currentRank?.en || '',
+        rank_points: riotUserInfo.points || 0,
+        mmr_change_to_last_game: riotUserInfo.mmr_change_to_last_game || 0,
+        total_points: riotUserInfo.totalPoints || 0,
+        account_level: riotUserInfo.account_level || 0,
+        shard: riotUserInfo.shared || '',
+        has_card: riotUserInfo.card ? 1 : 0,
+        error_type: riotUserInfo.error ? String(riotUserInfo.error).slice(0, 100) : '',
+    };
+}
+
+async function sendGoogleAnalyticsEvent(req, eventName, params) {
+    if (!config.googleAnalyticsId || !config.googleAnalyticsApiSecret) {
+        return;
+    }
+
+    const url = new URL('https://www.google-analytics.com/mp/collect');
+
+    url.searchParams.set('measurement_id', config.googleAnalyticsId);
+    url.searchParams.set('api_secret', config.googleAnalyticsApiSecret);
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                client_id: getGoogleAnalyticsClientId(req),
+                events: [
+                    {
+                        name: eventName,
+                        params: {
+                            ...params,
+                            engagement_time_msec: 1,
+                        },
+                    },
+                ],
+            }),
+        });
+
+        if (!response.ok) {
+            console.error('Google Analytics Measurement Protocol failed:', response.status, response.statusText);
+        }
+    } catch (error) {
+        console.error('Google Analytics Measurement Protocol error:', error);
+    }
+}
+
 function getGoogleAnalyticsTag() {
     if (!/^G-[A-Z0-9]+$/i.test(config.googleAnalyticsId)) {
         return '';
@@ -73,7 +200,7 @@ function getGoogleAnalyticsTag() {
 
         gtag('js', new Date());
         gtag('config', '${config.googleAnalyticsId}', {
-            page_path: window.location.pathname,
+            page_location: window.location.origin + window.location.pathname,
             allow_google_signals: false,
             allow_ad_personalization_signals: false
         });
